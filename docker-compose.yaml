@@ -1,0 +1,217 @@
+
+version: "3.8"
+
+services:
+
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-user
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: userdb
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-user-data:/var/lib/mysql
+    networks:
+      - microservices-network
+
+  mysql-book:
+    image: mysql:8.0
+    container_name: mysql-book
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bookdb
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-book-data:/var/lib/mysql
+    networks:
+      - microservices-network
+
+  mysql-emprunt:
+    image: mysql:8.0
+    container_name: mysql-emprunt
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: empruntdb
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql-emprunt-data:/var/lib/mysql
+    networks:
+      - microservices-network
+
+  mysql-notification:
+    image: mysql:8.0
+    container_name: mysql-notification
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: notificationdb
+    ports:
+      - "3310:3306"
+    volumes:
+      - mysql-notification-data:/var/lib/mysql
+    networks:
+      - microservices-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - microservices-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - microservices-network
+
+  eureka-service:
+    build: ./eurika
+    container_name: eureka-service
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_APPLICATION_NAME=eureka-service
+    networks:
+      - microservices-network
+
+  gateway-service:
+    build: ./gateway
+    container_name: gateway-service
+    ports:
+      - "9999:9999"
+    depends_on:
+      - eureka-service
+    environment:
+      - SPRING_APPLICATION_NAME=gateway-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka
+    networks:
+      - microservices-network
+    restart: on-failure
+
+  user-service:
+    build: ./user
+    container_name: user-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - eureka-service
+      - mysql-user
+      - kafka
+    environment:
+      - SPRING_APPLICATION_NAME=user-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-user:3306/userdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    networks:
+      - microservices-network
+    restart: on-failure
+
+  book-service:
+    build: ./book
+    container_name: book-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka-service
+      - mysql-book
+      - kafka
+    environment:
+      - SPRING_APPLICATION_NAME=book-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-book:3306/bookdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    networks:
+      - microservices-network
+    restart: on-failure
+
+  emprunt-service:
+    build: ./emprunter
+    container_name: emprunt-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - eureka-service
+      - mysql-emprunt
+      - kafka
+      - user-service
+      - book-service
+    environment:
+      - SPRING_APPLICATION_NAME=emprunt-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-emprunt:3306/empruntdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    networks:
+      - microservices-network
+    restart: on-failure
+
+  notification-service:
+      build: ./notification
+      container_name: notification-service
+      ports:
+        - "8084:8084"
+      depends_on:
+        - eureka-service
+        - mysql-notification
+        - kafka
+      environment:
+        - SPRING_APPLICATION_NAME=notification-service
+        - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka
+        - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-notification:3306/notificationdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+        - SPRING_DATASOURCE_USERNAME=root
+        - SPRING_DATASOURCE_PASSWORD=root
+        - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+        - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+        - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
+        - SPRING_JPA_SHOW_SQL=true
+        - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      networks:
+        - microservices-network
+      restart: on-failure
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  mysql-user-data:
+  mysql-book-data:
+  mysql-emprunt-data:
+  mysql-notification-data:

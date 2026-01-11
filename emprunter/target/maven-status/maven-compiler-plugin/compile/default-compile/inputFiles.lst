@@ -1,0 +1,13 @@
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\config\KafkaConfig.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\controller\EmpruntController.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\DTO\BookDTO.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\DTO\EmpruntDetailsDTO.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\DTO\UserDTO.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\EmpruntServiceApplication.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\entities\Emprunter.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\event\EmpruntEvent.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\feign\BookClient.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\feign\UserClient.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\repositories\EmpruntRepository.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\service\EmpruntProducer.java
+C:\Users\espacegamers\Desktop\Projet micro\microservicesapp\emprunter\src\main\java\com\org\emprunt\service\EmpruntService.java

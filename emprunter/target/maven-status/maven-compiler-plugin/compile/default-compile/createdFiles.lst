@@ -1,0 +1,13 @@
+com\org\emprunt\service\EmpruntService.class
+com\org\emprunt\feign\BookClient.class
+com\org\emprunt\entities\Emprunter.class
+com\org\emprunt\DTO\UserDTO.class
+com\org\emprunt\DTO\EmpruntDetailsDTO.class
+com\org\emprunt\config\KafkaConfig.class
+com\org\emprunt\controller\EmpruntController.class
+com\org\emprunt\EmpruntServiceApplication.class
+com\org\emprunt\DTO\BookDTO.class
+com\org\emprunt\event\EmpruntEvent.class
+com\org\emprunt\feign\UserClient.class
+com\org\emprunt\service\EmpruntProducer.class
+com\org\emprunt\repositories\EmpruntRepository.class
